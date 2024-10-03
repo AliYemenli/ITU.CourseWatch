@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\ITUKontenjanChecker.Api.props" />
+</Project>

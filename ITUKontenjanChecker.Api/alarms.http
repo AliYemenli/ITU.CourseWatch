@@ -1,0 +1,28 @@
+POST http://localhost:5154/alarms
+Content-Type: application/json
+
+{
+    "crn": "11334",
+    "Email": "aliyemenli3@gmail.com"
+}
+
+####
+POST http://localhost:5154/alarms
+Content-Type: application/json
+
+{
+    "crn": "13820",
+    "Email": "aliyemenli3gmail.com"
+}
+
+####
+POST http://localhost:5154/alarms
+Content-Type: application/json
+
+{
+    "crn": "14560",
+    "Email": "aliyemenli3@gmail.com"
+}
+
+
+
