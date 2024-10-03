@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "2B4ITWGRQfQ3vw+9SY9raNl/BFSWrTEPHLXn7vhZBI8=",
+  "Source": "ITU.CourseWatch.Api",
+  "BasePath": "_content/ITU.CourseWatch.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\ITU.CourseWatch.Api.props" />
+</Project>

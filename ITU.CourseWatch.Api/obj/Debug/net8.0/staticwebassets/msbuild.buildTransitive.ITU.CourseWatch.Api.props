@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\ITU.CourseWatch.Api.props" />
+</Project>
