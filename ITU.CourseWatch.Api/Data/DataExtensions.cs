@@ -5,11 +5,11 @@ namespace ITU.CourseWatch.Api.Data;
 
 public static class DataExtensions
 {
-    public static void MigrateDb(this WebApplication app)
+    public static async Task InitializeAsync(this IServiceProvider serviceProvider)
     {
-        using var scope = app.Services.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CourseWatchContext>();
-        dbContext.Database.Migrate();
+        await dbContext.Database.MigrateAsync();
     }
 
     public static List<CourseDto> GetAsCourseDto(this CourseResponseDto courses)

@@ -4,7 +4,7 @@ using ITU.CourseWatch.Api.Workers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var connString = builder.Configuration.GetConnectionString("KontenjanChecker");
+var connString = builder.Configuration.GetConnectionString("CourseWatch");
 
 builder.Services.AddSqlite<CourseWatchContext>(connString);
 builder.Services.AddScoped<CourseWatchContext>();
@@ -20,7 +20,6 @@ app.MapBranchesEndpoints();
 app.MapCoursesEndpoints();
 app.MapAlarmsEndpoints();
 
-
-
-app.MigrateDb();
+await app.Services.InitializeAsync();
 app.Run();
+    
