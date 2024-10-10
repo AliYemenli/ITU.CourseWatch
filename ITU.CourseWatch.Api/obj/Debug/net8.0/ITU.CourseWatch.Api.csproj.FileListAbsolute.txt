@@ -125,3 +125,4 @@ C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.pdb
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.genruntimeconfig.cache
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ref\ITU.CourseWatch.Api.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.sourcelink.json
