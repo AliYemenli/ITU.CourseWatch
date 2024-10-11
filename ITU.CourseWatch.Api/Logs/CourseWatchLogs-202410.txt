@@ -1,0 +1,6 @@
+2024-10-11 13:20:04.910 +03:00 [ERR] Failed executing DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Branches" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Branches" PRIMARY KEY AUTOINCREMENT,
+    "BranchId" INTEGER NOT NULL,
+    "BranchCode" TEXT NOT NULL
+);
