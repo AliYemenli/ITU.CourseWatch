@@ -2,17 +2,20 @@ using System.Text.Json;
 using ITU.CourseWatch.Api.Data;
 using ITU.CourseWatch.Api.Dtos;
 using ITU.CourseWatch.Api.Entities;
+using ITU.CourseWatch.Api.Mapping;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace ITU.CourseWatch.Api.Services;
 
 public class CourseService
 {
-    private const string _url = "https://obs.itu.edu.tr/public/DersProgram/DersProgramSearch?ProgramSeviyeTipiAnahtari=LS&dersBransKoduId=";
+    private const string Url = "https://obs.itu.edu.tr/public/DersProgram/DersProgramSearch?ProgramSeviyeTipiAnahtari=LS&dersBransKoduId=";
 
-    public async Task<CourseResponseDto> GetAsyncCourseClient(string branch)
+    public async Task<CourseResponseDto> GetCoursesAsync(string branch)
     {
         using var client = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, _url + branch);
+        var request = new HttpRequestMessage(HttpMethod.Get, Url + branch);
 
         CourseResponseDto responseDto = new CourseResponseDto();
 
@@ -23,7 +26,7 @@ public class CourseService
         }
         catch (Exception ex)
         {
-            throw new Exception("API request failed. Exception: " + ex.Message);
+            Log.Error(" [{Class}] API request failed. Exception:. Exception: {Exception}", this, ex.Message);
         }
 
         if (response is not null && response.IsSuccessStatusCode)
@@ -32,61 +35,100 @@ public class CourseService
 
             if (!string.IsNullOrEmpty(content))
             {
-                responseDto = JsonSerializer.Deserialize<CourseResponseDto>(content) ?? new CourseResponseDto();
+                try
+                {
+                    using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
+
+                    var responseDtoTask = await JsonSerializer.DeserializeAsync<CourseResponseDto>(stream);
+                    responseDto = responseDtoTask ?? new();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(" [{Class}] Problem with the Deserializing the api response. Exception:. Exception: {Exception}", this, e.Message);
+                }
+            }
+            else
+            {
+                Log.Error(" [{Class}] API response is 200 but content is empty or null somehow. Exception:. Exception: {Exception}", this);
             }
         }
+
         return responseDto;
     }
 
-    private List<CourseDto> GetAllCoursesOfBranch(string branch)
+    private async Task<List<CourseDto>> GetCourseDtosAsync(string branch)
     {
-        var courses = GetAsyncCourseClient(branch).Result;
-        return courses.GetAsCourseDto();
+        var courses = await GetCoursesAsync(branch);
+        return await courses.ToCourseDtoListAsync();
     }
 
-    private Task<List<Course>> GetAllCoursesAsEntities(CourseWatchContext dbContext)
+    private async Task<List<Course>> GetCourseEntitiesAsync(CourseWatchContext dbContext)
     {
         List<Course> courseEntities = new List<Course>();
-        foreach (var branch in dbContext.Branches.ToList())
-        {
-            var branchCourses = GetAllCoursesOfBranch(branch.BranchId.ToString());
 
-            foreach (var course in branchCourses)
+        try
+        {
+            foreach (var branch in await dbContext.Branches.ToListAsync())
             {
-                courseEntities.Add(new Course
+                var branchCourses = await GetCourseDtosAsync(branch.BranchId.ToString());
+
+                foreach (var course in branchCourses)
                 {
-                    Crn = course.Crn,
-                    Code = course.CourseCode,
-                    Name = course.CourseName,
-                    Instructor = course.CourseInstructor,
-                    Capacity = course.CourseCapacity,
-                    Enrolled = course.CourseEnrolled,
-                    BranchId = branch.Id,
-                    Branch = branch
-                });
+                    courseEntities.Add(new Course
+                    {
+                        Crn = course.Crn,
+                        Code = course.CourseCode,
+                        Name = course.CourseName,
+                        Instructor = course.CourseInstructor,
+                        Capacity = course.CourseCapacity,
+                        Enrolled = course.CourseEnrolled,
+                        BranchId = branch.Id,
+                        Branch = branch
+                    });
+                }
             }
         }
+        catch (Exception e)
+        {
+            Log.Error(" [{Class}] Error at the parsing the dto to entities, chance to return a empty list. Exception:. Exception: {Exception}", this, e.Message);
+        }
 
-        return Task.FromResult(courseEntities);
+        return courseEntities;
     }
 
 
     public async Task UpdateCoursesAsync(CourseWatchContext dbContext)
     {
-        var newCourses = await GetAllCoursesAsEntities(dbContext);
+        var newCourses = await GetCourseEntitiesAsync(dbContext);
+        List<Task> courseTasks = new();
 
-        foreach (var course in newCourses)
+        try
         {
-            var existingCourse = dbContext.Courses.Where(z => z.Crn == course.Crn).FirstOrDefault();
-            if (existingCourse is null)
+            foreach (var course in newCourses)
             {
-                dbContext.Courses.Add(course);
-            }
-            else
-            {
-                existingCourse.Equals(course);
+                var existingCourseTask = dbContext.Courses
+                    .Where(z => z.Crn == course.Crn)
+                    .FirstOrDefaultAsync();
+
+                courseTasks.Add(existingCourseTask.ContinueWith(existingTask =>
+                {
+                    var existingCourse = existingTask.Result;
+                    if (existingCourse is null)
+                    {
+                        dbContext.Courses.AddAsync(course);
+                    }
+                    else
+                    {
+                        existingCourse.Equals(course);
+                    }
+                }));
             }
         }
+        catch (Exception e)
+        {
+            Log.Fatal(" [{Class}] A problem occured when trying to update Course table of DB, require attention . Exception:. Exception: {Exception}", this, e.Message);
+        }
+        await Task.WhenAll(courseTasks);
         await dbContext.SaveChangesAsync();
     }
 

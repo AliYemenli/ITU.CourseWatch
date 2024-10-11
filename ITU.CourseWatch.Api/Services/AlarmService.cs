@@ -2,6 +2,7 @@ using ITU.CourseWatch.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
 using ITU.CourseWatch.Api.Entities;
 using ITU.CourseWatch.Api.Data;
+using Serilog;
 
 namespace ITU.CourseWatch.Api.Services;
 
@@ -27,26 +28,38 @@ public class AlarmService
 
     private bool IsAvailable(Alarm alarm)
     {
-        return alarm.Course is not null && alarm.Course.Capacity > alarm.Course.Enrolled;
+        return alarm.Course.Capacity > alarm.Course.Enrolled;
     }
 
     public async Task SendAlarmAsync()
     {
         var alarms = await GetAlarmsAsync();
 
-        foreach (var alarm in alarms)
-        {
-            if (IsAvailable(alarm))
-            {
-                _mailService.SendEmail(new MailBodyDto(
-                    alarm.Subscriber,
-                    "Course Availability Notification",
-                    _mailService.GetAlarmBody(alarm)
-                ));
+        List<Task<Alarm>> mailTasks = new List<Task<Alarm>>();
 
-                await _dbContext.Alarms.Where(a => a == alarm).ExecuteDeleteAsync();
+        try
+        {
+            foreach (var alarm in alarms)
+            {
+                if (IsAvailable(alarm))
+                {
+                    mailTasks.Add(_mailService.SendAlarmMailAsync(alarm));
+                }
+            }
+
+            while (mailTasks.Count > 0)
+            {
+                var finishedAlarm = await Task.WhenAny(mailTasks);
+
+                _dbContext.Alarms.Remove(await finishedAlarm);
             }
         }
+        catch (Exception e)
+        {
+            Log.Fatal(" [{Class}] Error occured. Exception:. Exception: {Exception}", this, e.Message);
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 
 
