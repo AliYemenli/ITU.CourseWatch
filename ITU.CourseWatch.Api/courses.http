@@ -1,6 +1,4 @@
 
-GET http://localhost:5154/courses
-####
 
 GET http://localhost:5154/courses/branch/EHB
 
