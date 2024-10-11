@@ -125,4 +125,19 @@ C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.pdb
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.genruntimeconfig.cache
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ref\ITU.CourseWatch.Api.dll
+<<<<<<< HEAD
 C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.sourcelink.json
+=======
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.AspNetCore.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Enrichers.WithCaller.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Extensions.Hosting.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Extensions.Logging.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Formatting.Compact.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Settings.Configuration.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Sinks.Console.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Sinks.Debug.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Serilog.Sinks.File.dll
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\obj\Debug\net8.0\ITU.CourseWatch.Api.sourcelink.json
+C:\Users\z004v6sj\Desktop\repos\Personal\ITU.CourseWatch\ITU.CourseWatch.Api\bin\Debug\net8.0\Data\DataExtensions.cs
+>>>>>>> c64bd4cccb56317b9f5afa50156a3c75d8a5a351

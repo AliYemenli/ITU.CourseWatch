@@ -1,25 +1,15 @@
 using ITU.CourseWatch.Api.Data;
-using ITU.CourseWatch.Api.Endpoints;
-using ITU.CourseWatch.Api.Workers;
-using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-var connString = builder.Configuration.GetConnectionString("CourseWatch");
 
-builder.Services.AddSqlite<CourseWatchContext>(connString);
-builder.Services.AddScoped<CourseWatchContext>();
-
-builder.Services.AddHostedService<BranchUpdaterService>();
-builder.Services.AddHostedService<CourseUpdaterService>();
-builder.Services.AddHostedService<AlarmCheckerWorker>();
-
+builder.SetDb();
+builder.AddWorkers();
+builder.SetSerilog();
 
 var app = builder.Build();
 
-app.MapBranchesEndpoints();
-app.MapCoursesEndpoints();
-app.MapAlarmsEndpoints();
+app.MapEndpoints();
+await app.Services.InitializeDbAsync();
 
-await app.Services.InitializeAsync();
-app.Run();
-    
+await app.RunAsync();
