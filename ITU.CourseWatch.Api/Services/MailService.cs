@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using ITU.CourseWatch.Api.Dtos;
 using ITU.CourseWatch.Api.Entities;
+using Serilog;
 
 namespace ITU.CourseWatch.Api.Services;
 
@@ -28,7 +29,7 @@ public class MailService
 
         return mailSettings;
     }
-    public void SendEmail(MailBodyDto mailBodyModel)
+    private async Task SendEmailAsync(MailBodyDto mailBodyModel)
     {
         try
         {
@@ -49,27 +50,38 @@ public class MailService
                 EnableSsl = true
             };
 
-            smtpClient.Send(mail);
+            await smtpClient.SendMailAsync(mail);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Console.WriteLine(ex.ToString());
+            Log.Error(" [{Class}] Error with the email service, can not send the mail. Exception:. Exception: {Exception}", this, e.Message);
         }
+    }
+
+
+    public async Task<Alarm> SendAlarmMailAsync(Alarm alarm)
+    {
+        await SendEmailAsync(new MailBodyDto(
+            alarm.Subscriber,
+            "Course Availability Notification",
+            GetAlarmBody(alarm)));
+
+        Log.Information(" [{Class}] Sent alarm for user {Subscriber}", this, alarm.Subscriber);
+
+        return alarm;
     }
 
     public async Task SendRegisterNotificationAsync(Alarm alarm)
     {
-        await Task.Run(() =>
-                SendEmail(new MailBodyDto(
-                alarm.Subscriber,
-                "Alarm Registration Confirmation",
-                GetRegisterBody(alarm)
-            ))
-        );
+        await SendEmailAsync(new MailBodyDto(
+            alarm.Subscriber,
+            "Alarm Registration Confirmation",
+            GetRegisterBody(alarm)));
+
+        Log.Information(" [{Class}] Sent register notification for user {Subscriber}", this, alarm.Subscriber);
     }
 
-
-    public string GetAlarmBody(Alarm alarm)
+    private string GetAlarmBody(Alarm alarm)
     {
         return $@"
         <h1>Course Availability Notification</h1>

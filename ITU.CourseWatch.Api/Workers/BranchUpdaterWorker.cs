@@ -1,6 +1,7 @@
 using System;
 using ITU.CourseWatch.Api.Data;
 using ITU.CourseWatch.Api.Services;
+using Serilog;
 
 namespace ITU.CourseWatch.Api.Workers;
 
@@ -16,7 +17,7 @@ public class BranchUpdaterService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-
+        Log.Information("Branch worker started.");
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -28,10 +29,9 @@ public class BranchUpdaterService : BackgroundService
                     await _branchService.UpdateBranchesAsync(dbContext);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine(ex.Message.ToString());
-                throw;
+                Log.Fatal(" [{Class}] Error occured at Branch Worker. Exception: Exception: {Exception}", this, e.Message);
             }
             await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }

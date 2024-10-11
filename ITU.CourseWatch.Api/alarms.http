@@ -11,8 +11,8 @@ POST http://localhost:5154/alarms
 Content-Type: application/json
 
 {
-    "crn": "13820",
-    "Email": "aliyemenli3gmail.com"
+    "crn": "10923",
+    "Email": "aliyemenli3@gmail.com"
 }
 
 ####
