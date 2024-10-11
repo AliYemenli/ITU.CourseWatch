@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ITU.CourseWatch.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd14e099f9fb715c359c24918c5816cfcbc343ae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+75e7f168e0f6976d0314a3f01fd96caca5ca048c")]
 [assembly: System.Reflection.AssemblyProductAttribute("ITU.CourseWatch.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ITU.CourseWatch.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
