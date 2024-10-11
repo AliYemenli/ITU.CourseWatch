@@ -27,4 +27,28 @@ public static class CourseMapping
         }
         return coursesDtos;
     }
+
+    public static async Task<List<CourseDto>> ToCourseDtoListAsync(this CourseResponseDto courses)
+    {
+        List<CourseDto> coursesDto = new List<CourseDto>();
+
+        await Task.Run(() =>
+        {
+            foreach (var course in courses.CourseList!)
+            {
+                coursesDto.Add(new CourseDto
+                {
+                    Crn = course.Crn,
+                    CourseCode = course.CourseCode,
+                    CourseName = course.CourseName!,
+                    CourseInstructor = course.Instructor!,
+                    CourseCapacity = course.Capacity,
+                    CourseEnrolled = course.Enrolled,
+                    CourseBranchId = course.BranchId,
+                });
+            }
+        });
+
+        return coursesDto;
+    }
 }
