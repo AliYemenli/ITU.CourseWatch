@@ -1,5 +1,4 @@
 using ITU.CourseWatch.Api.Data;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
