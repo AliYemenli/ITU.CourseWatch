@@ -1,66 +1,49 @@
+namespace ITU.CourseWatch.Api.Services;
 using ITU.CourseWatch.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
 using ITU.CourseWatch.Api.Entities;
 using ITU.CourseWatch.Api.Data;
 using Serilog;
-
-namespace ITU.CourseWatch.Api.Services;
+using System.ComponentModel.DataAnnotations;
+using ITU.CourseWatch.Api.Repository.AlarmRepositories;
 
 public class AlarmService
 {
-    private readonly CourseWatchContext _dbContext;
+    private readonly IAlarmRepository _alarmRepository;
     private readonly MailService _mailService;
 
 
-    public AlarmService(CourseWatchContext CourseWatchContext)
+    public AlarmService(IAlarmRepository alarmRepository)
     {
-        _dbContext = CourseWatchContext;
+        _alarmRepository = alarmRepository;
         _mailService = new MailService();
     }
-    private async Task<List<Alarm>> GetAlarmsAsync()
-    {
-        return await _dbContext.Alarms
-        .Include(a => a.Course)
-        .Include(a => a.Course.Branch)
-        .AsNoTracking()
-        .ToListAsync() ?? new List<Alarm>();
-    }
 
-    private bool IsAvailable(Alarm alarm)
+    public async Task HandleAlarmsAsync()
     {
-        return alarm.Course.Capacity > alarm.Course.Enrolled;
-    }
-
-    public async Task SendAlarmAsync()
-    {
-        var alarms = await GetAlarmsAsync();
-
-        List<Task<Alarm>> mailTasks = new List<Task<Alarm>>();
+        var alarms = _alarmRepository.GetAvailablesAsync();
+        var taskList = new List<Task>();
 
         try
         {
-            foreach (var alarm in alarms)
+            foreach (var alarm in await alarms)
             {
-                if (IsAvailable(alarm))
+                taskList.Add(_mailService.SendAlarmMailAsync(alarm).ContinueWith(async (finishedTask) =>
                 {
-                    mailTasks.Add(_mailService.SendAlarmMailAsync(alarm));
-                }
+
+                    await _alarmRepository.DeleteAsync(alarm);
+
+                }));
             }
 
-            while (mailTasks.Count > 0)
-            {
-                var finishedAlarm = await Task.WhenAny(mailTasks);
-
-                _dbContext.Alarms.Remove(await finishedAlarm);
-            }
+            await Task.WhenAll(taskList);
         }
         catch (Exception e)
         {
             Log.Fatal(" [{Class}] Error occured. Exception:. Exception: {Exception}", this, e.Message);
         }
-
-        await _dbContext.SaveChangesAsync();
     }
+
 
 
 }

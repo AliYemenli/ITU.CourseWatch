@@ -12,4 +12,5 @@ public static class AlarmMapping
             alarm.Course.ToCourseSummaryDto()
         );
     }
+
 }

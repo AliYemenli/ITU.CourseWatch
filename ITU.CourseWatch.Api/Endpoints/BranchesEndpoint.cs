@@ -1,9 +1,8 @@
-using ITU.CourseWatch.Api.Data;
+namespace ITU.CourseWatch.Api.Endpoints;
 using ITU.CourseWatch.Api.Entities;
 using ITU.CourseWatch.Api.Mapping;
-using Microsoft.EntityFrameworkCore;
-
-namespace ITU.CourseWatch.Api.Endpoints;
+using ITU.CourseWatch.Api.Repository.BranchRepositories;
+using Serilog;
 
 public static class BranchesEndpoint
 {
@@ -13,19 +12,27 @@ public static class BranchesEndpoint
             .WithParameterValidation();
 
         //GET /branches
-        group.MapGet("/", async (CourseWatchContext dbContext) =>
-            await dbContext.Branches
-                .Select(b => b.ToBranchSummaryDto())
-                .AsNoTracking()
-                .ToListAsync()
-        );
+        group.MapGet("/", async (IBranchRepository branchRepository) =>
+        {
+
+            var branches = await branchRepository.GetAllAsync();
+
+            return branches.Select(branch => branch.ToBranchSummaryDto());
+        });
 
         //GET /branches/branchCode
-        group.MapGet("/{branchCode}", async (string branchCode, CourseWatchContext dbContext) =>
+        group.MapGet("/{branchCode}", async (string branchCode, IBranchRepository branchRepository) =>
         {
-            Branch? branch = await dbContext.Branches
-                .FirstOrDefaultAsync(b => b.BranchCode.Equals(branchCode, StringComparison.CurrentCultureIgnoreCase));
-
+            Branch? branch = null;
+            try
+            {
+                branch = await branchRepository.GetAsync(branchCode);
+            }
+            catch (Exception e)
+            {
+                Log.Error(" [{Class}] Error occured at /branches/branchCode. Exception: {Exception}", nameof(MapBranchesEndpoints), e.Message);
+                return Results.Problem("Internal Server error", statusCode: 500);
+            }
             return branch is null ?
                 Results.NotFound() : Results.Ok(branch.ToBranchSummaryDto());
         });

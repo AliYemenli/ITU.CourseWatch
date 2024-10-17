@@ -1,8 +1,7 @@
 using ITU.CourseWatch.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.SetDb();
+builder.Services.AddRepositories(builder.Configuration);
 builder.AddWorkers();
 builder.SetSerilog();
 

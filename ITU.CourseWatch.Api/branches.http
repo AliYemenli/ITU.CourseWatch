@@ -3,3 +3,4 @@ GET http://localhost:5154/branches
 
 #####
 
+GET http://localhost:5154/branches/EHB

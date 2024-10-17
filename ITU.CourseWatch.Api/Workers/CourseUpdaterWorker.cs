@@ -8,7 +8,6 @@ namespace ITU.CourseWatch.Api.Workers;
 public class CourseUpdaterService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly CourseService _courseService = new CourseService();
 
     public CourseUpdaterService(IServiceProvider serviceProvider)
     {
@@ -24,8 +23,8 @@ public class CourseUpdaterService : BackgroundService
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<CourseWatchContext>();
-                    await _courseService.UpdateCoursesAsync(dbContext);
+                    var courseService = scope.ServiceProvider.GetRequiredService<CourseService>();
+                    await courseService.RefreshCoursesAsync();
                 }
             }
             catch (Exception e)

@@ -4,8 +4,11 @@ using ITU.CourseWatch.Api.Data;
 using ITU.CourseWatch.Api.Dtos;
 using ITU.CourseWatch.Api.Entities;
 using ITU.CourseWatch.Api.Mapping;
+using ITU.CourseWatch.Api.Repository.AlarmRepositories;
+using ITU.CourseWatch.Api.Repository.CourseRepositories;
 using ITU.CourseWatch.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace ITU.CourseWatch.Api.Endpoints;
 
@@ -21,21 +24,27 @@ public static class AlarmsEndpoints
         var group = app.MapGroup("/alarms")
             .WithParameterValidation();
 
-        group.MapPost("/", async (CreateAlarmDto newAlarm, CourseWatchContext dbContext) =>
+        group.MapPost("/", async (CreateAlarmDto newAlarm, IAlarmRepository alarmRepository, ICourseRepository courseRepository) =>
+
         {
             if (!IsValidEmail(newAlarm.Email))
             {
                 return Results.BadRequest("Invalid email format.");
             }
 
-            var course = await dbContext.Courses
-                .Include(c => c.Branch)
-                .FirstOrDefaultAsync(c => c.Crn == newAlarm.Crn);
+            var course = await courseRepository
+                        .GetAsync(newAlarm.Crn);
 
             if (course is null)
             {
                 return Results
                     .NotFound("There is no course for given CRN");
+            }
+
+            if (course.Capacity > course.Enrolled)
+            {
+                return Results
+                    .Conflict("Course you provided is already available for registering.");
             }
 
             try
@@ -46,16 +55,24 @@ public static class AlarmsEndpoints
                     Subscriber = newAlarm.Email
                 };
 
-                await dbContext.Alarms.AddAsync(alarm);
-                await dbContext.SaveChangesAsync();
+                await Task.WhenAll(
+                        alarmRepository.CreateAsync(alarm),
+                        _mailService.SendRegisterNotificationAsync(alarm)
+                        );
 
-                await _mailService.SendRegisterNotificationAsync(alarm);
+                Log.Information("Alarm created for subscriber: {Email}, CRN: {Crn}", newAlarm.Email, newAlarm.Crn);  // Log success
 
-                return Results.Ok(alarm.ToAlarmSummaryDto());
+
+                return Results.Ok(new
+                {
+                    Message = alarm.ToAlarmSummaryDto(),
+                    Data = alarm.ToAlarmSummaryDto()
+                });
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return Results.StatusCode(500);
+                Log.Error(" [AlarmAPI] An error occured.  Exception: {Exception}", e.Message);
+                return Results.Problem("Internal Server Error", statusCode: 500);
             }
         });
 

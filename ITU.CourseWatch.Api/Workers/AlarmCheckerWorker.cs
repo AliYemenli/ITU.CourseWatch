@@ -1,5 +1,6 @@
 using System;
 using ITU.CourseWatch.Api.Data;
+using ITU.CourseWatch.Api.Repository.AlarmRepositories;
 using ITU.CourseWatch.Api.Services;
 using Serilog;
 
@@ -24,10 +25,9 @@ public class AlarmCheckerWorker : BackgroundService
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<CourseWatchContext>();
-                    AlarmService alarmService = new AlarmService(dbContext);
+                    var alarmService = scope.ServiceProvider.GetRequiredService<AlarmService>();
 
-                    await alarmService.SendAlarmAsync();
+                    await alarmService.HandleAlarmsAsync();
                 }
             }
             catch (Exception e)
