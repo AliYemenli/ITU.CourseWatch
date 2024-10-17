@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Mail;
 using ITU.CourseWatch.Api.Dtos;
@@ -58,8 +59,11 @@ public class MailService
         }
     }
 
-
-    public async Task<Alarm> SendAlarmMailAsync(Alarm alarm)
+    public bool IsValidEmail(CreateAlarmDto newAlarm)
+    {
+        return new EmailAddressAttribute().IsValid(newAlarm.Email);
+    }
+    public async Task SendAlarmMailAsync(Alarm alarm)
     {
         await SendEmailAsync(new MailBodyDto(
             alarm.Subscriber,
@@ -68,7 +72,6 @@ public class MailService
 
         Log.Information(" [{Class}] Sent alarm for user {Subscriber}", this, alarm.Subscriber);
 
-        return alarm;
     }
 
     public async Task SendRegisterNotificationAsync(Alarm alarm)

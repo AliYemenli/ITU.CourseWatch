@@ -1,5 +1,7 @@
 using ITU.CourseWatch.Api.Data;
 using ITU.CourseWatch.Api.Mapping;
+using ITU.CourseWatch.Api.Repository.BranchRepositories;
+using ITU.CourseWatch.Api.Repository.CourseRepositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITU.CourseWatch.Api.Endpoints;
@@ -13,20 +15,16 @@ public static class CoursesEndpoints
 
 
         // GET //courses
-        group.MapGet("/", async (CourseWatchContext dbContext) =>
-            await dbContext.Courses
-                .Include(c => c.Branch)
-                .Select(c => c.ToCourseSummaryDto())
-                .AsNoTracking()
-                .ToListAsync()
-        );
+        group.MapGet("/", async (ICourseRepository courseRepository) =>
+        {
+            var courses = await courseRepository.GetAllAsync();
+            return courses.Select(c => c.ToCourseSummaryDto());
+        });
 
         // GET //courses/crn/{crn}
-        group.MapGet("/crn/{crn}", async (string crn, CourseWatchContext dbContext) =>
+        group.MapGet("/crn/{crn}", async (string crn, ICourseRepository courseRepository) =>
         {
-            var course = await dbContext.Courses
-                .Include(c => c.Branch)
-                .FirstOrDefaultAsync(c => c.Crn == crn);
+            var course = await courseRepository.GetAsync(crn);
 
             return course is null ?
                 Results.NotFound("There is no course for given CRN") : Results.Ok(course.ToCourseSummaryDto());
@@ -34,13 +32,13 @@ public static class CoursesEndpoints
         .WithName("GetCourseByCrn");
 
         // GET //courses/branch/{branchCode}
-        group.MapGet("/branch/{branchCode}", async (string branchCode, CourseWatchContext dbContext) =>
+        group.MapGet("/branch/{branchCode}", async (string branchCode, ICourseRepository courseRepository) =>
         {
-            var courses = await dbContext.Courses
-                .Include(c => c.Branch)
-                .AsNoTracking()
-                .Where(c => c.Branch.BranchCode == branchCode)
-                .ToListAsync();
+            var coursesList = await courseRepository.GetAllAsync();
+            var courses = coursesList
+                                .Where(c => c.Branch.BranchCode == branchCode)
+                                .ToList();
+
 
             return courses.Count == 0 ?
                 Results.NotFound("There is no course for given BranchCode") : Results.Ok(courses.ToCourseSummaryDto());

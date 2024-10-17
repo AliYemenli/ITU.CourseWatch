@@ -2,3 +2,8 @@
 
 GET http://localhost:5154/courses/branch/EHB
 
+
+####
+
+GET http://localhost:5154/courses/crn/13278
+

@@ -1,17 +1,23 @@
 namespace ITU.CourseWatch.Api.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using ITU.CourseWatch.Api.Data;
 using ITU.CourseWatch.Api.Dtos;
 using ITU.CourseWatch.Api.Entities;
-using Microsoft.EntityFrameworkCore;
+using ITU.CourseWatch.Api.Repository.BranchRepositories;
 using Serilog;
 
 public class BranchService
 {
     private const string Url = "https://obs.itu.edu.tr/public/DersProgram/SearchBransKoduByProgramSeviye?programSeviyeTipiAnahtari=LS";
+    private readonly IBranchRepository _branchRepository;
+    public BranchService(IBranchRepository branchRepository)
+    {
+        _branchRepository = branchRepository;
+    }
 
-    private async Task<List<BranchDto>> GetBranchesAsync()
+    private async Task<List<BranchDto>> FetchBranchesAsync()
     {
         using HttpClient client = new HttpClient();
         List<BranchDto> branches = new List<BranchDto>();
@@ -53,58 +59,57 @@ public class BranchService
         return branches;
     }
 
-    private async Task<List<Branch>> GetBranchEntitiesAsync()
+    private async Task<List<Branch>> FetchBranchEntitiesAsync()
     {
         List<Branch> entities = new List<Branch>();
 
         try
         {
-            var branches = await GetBranchesAsync();
+            var branches = await FetchBranchesAsync();
 
-            await Task.Run(() =>
+            foreach (var branch in branches)
             {
-                foreach (var branch in branches)
+                entities.Add(new Branch
                 {
-                    entities.Add(new Branch
-                    {
-                        BranchId = branch.BranchId,
-                        BranchCode = branch.BranchCode!
-                    });
-                }
-            });
+                    BranchId = branch.BranchId,
+                    BranchCode = branch.BranchCode!
+                });
+            }
+
 
         }
         catch (Exception e)
         {
-            Log.Error(" [{Class}] There is an error occured when trying to get branch entities list. May returned a empty list. Exception: {Exception}", this, e.Message);
+            Log.Error(" [{Class}] There is an error occured when trying to get branch entities list. May returned a empty list. Exception: {Exception}", nameof(BranchService), e.Message);
         }
 
         return entities;
     }
 
 
-    public async Task UpdateBranchesAsync(CourseWatchContext dbContext)
+    public async Task RefreshBranchesAsync()
     {
-        var NewBranches = await GetBranchEntitiesAsync();
-
+        var newBranches = await FetchBranchEntitiesAsync();
+        var tasks = new List<Task>();
         try
         {
-            foreach (var branch in NewBranches)
+            foreach (var branch in newBranches)
             {
-                var existingBranch = await dbContext.Branches
-                    .FirstOrDefaultAsync(b => b.BranchId == branch.BranchId);
+                var existingBranch = await _branchRepository.GetAsync(branch);
 
                 if (existingBranch is null)
                 {
-                    dbContext.Branches.Add(branch);
+                    tasks.Add(_branchRepository.CreateAsync(branch));
                 }
                 else
                 {
-                    existingBranch = branch;
+                    existingBranch.BranchCode = branch.BranchCode;
+                    existingBranch.BranchId = branch.BranchId;
+                    tasks.Add(_branchRepository.UpdateAsync(existingBranch));
                 }
             }
 
-            await dbContext.SaveChangesAsync();
+            await Task.WhenAll(tasks);
         }
         catch (Exception e)
         {

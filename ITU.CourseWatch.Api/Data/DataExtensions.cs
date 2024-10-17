@@ -1,4 +1,8 @@
 using ITU.CourseWatch.Api.Endpoints;
+using ITU.CourseWatch.Api.Repository.AlarmRepositories;
+using ITU.CourseWatch.Api.Repository.BranchRepositories;
+using ITU.CourseWatch.Api.Repository.CourseRepositories;
+using ITU.CourseWatch.Api.Services;
 using ITU.CourseWatch.Api.Workers;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -17,9 +21,10 @@ public static class DataExtensions
 
     public static void AddWorkers(this WebApplicationBuilder builder)
     {
-        builder.Services.AddHostedService<BranchUpdaterService>();
-        builder.Services.AddHostedService<CourseUpdaterService>();
-        builder.Services.AddHostedService<AlarmCheckerWorker>();
+        builder.Services
+            .AddHostedService<BranchUpdaterService>()
+            .AddHostedService<CourseUpdaterService>()
+            .AddHostedService<AlarmCheckerWorker>();
     }
 
     public static void MapEndpoints(this WebApplication app)
@@ -29,13 +34,25 @@ public static class DataExtensions
         app.MapAlarmsEndpoints();
     }
 
-    public static void SetDb(this WebApplicationBuilder builder)
-    {
-        var connString = builder.Configuration.GetConnectionString("CourseWatch");
-        builder.Services.AddSqlite<CourseWatchContext>(connString);
-        builder.Services.AddScoped<CourseWatchContext>();
-    }
 
+
+    public static IServiceCollection AddRepositories(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
+    {
+        var connString = configuration.GetConnectionString("CourseWatch");
+        services.AddSqlite<CourseWatchContext>(connString)
+                .AddScoped<CourseWatchContext>()
+                .AddScoped<BranchService>()
+                .AddScoped<IBranchRepository, EFBranchRepository>()
+                .AddScoped<CourseService>()
+                .AddScoped<ICourseRepository, EFCourseRepository>()
+                .AddScoped<AlarmService>()
+                .AddScoped<IAlarmRepository, EFAlarmRepository>();
+
+        return services;
+    }
     public static void SetSerilog(this WebApplicationBuilder builder)
     {
         Log.Logger = new LoggerConfiguration()
