@@ -5,5 +5,7 @@ DB/
 *.idea/
 .vscode/
 Logs/
+bin/
+
 /ITU.CourseWatch.Api/obj/
 
