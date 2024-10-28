@@ -65,8 +65,7 @@ public static class AlarmsEndpoints
 
                 return Results.Ok(new
                 {
-                    Message = alarm.ToAlarmSummaryDto(),
-                    Data = alarm.ToAlarmSummaryDto()
+                    Message = alarm.ToAlarmSummaryDto()
                 });
             }
             catch (Exception e)

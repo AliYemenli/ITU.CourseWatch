@@ -167,7 +167,6 @@ public class CourseService
             }
 
             await Task.WhenAll(courseTasks);
-
             await _courseRepository.CreateBulkAsync(coursesToCreate.ToList());
             await _courseRepository.UpdateBulkAsync(coursesToUpdate.ToList());
 

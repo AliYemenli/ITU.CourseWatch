@@ -29,6 +29,7 @@ public class EFCourseRepository : ICourseRepository
     {
         return await _dbContext.Courses
                                 .Include(c => c.Branch)
+                                .AsNoTracking()
                                 .FirstOrDefaultAsync(c => c.Crn == course.Crn);
     }
     public async Task<Course?> GetAsync(string crn)
@@ -49,7 +50,8 @@ public class EFCourseRepository : ICourseRepository
     {
         if (courses == null || !courses.Any())
         {
-            throw new ArgumentException("Courses cannot be null or empty.", nameof(courses));
+            await _dbContext.SaveChangesAsync();
+            return;
         }
 
         await _dbContext.Courses.AddRangeAsync(courses);
